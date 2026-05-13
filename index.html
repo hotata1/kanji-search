@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>漢字検索</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: env(safe-area-inset-bottom) 0 0 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 100%;
+        }
+        
+        /* パスワード画面 */
+        .password-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .password-screen.hidden {
+            display: none;
+        }
+        
+        .password-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .password-box h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .password-box p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .password-input-group {
+            margin-bottom: 20px;
+        }
+        
+        .password-input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        .password-input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .password-button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .password-button:active {
+            background: #5568d3;
+        }
+        
+        .password-error {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .password-error.show {
+            display: block;
+        }
+        
+        /* メイン画面 */
+        .main-screen {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .main-screen.hidden {
+            display: none;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 12px;
+        }
+        
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .file-section {
+            padding: 15px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        .file-input-label {
+            display: block;
+            padding: 12px 15px;
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            cursor: pointer;
+        }
+        
+        .file-input-label:active {
+            background: #f9f9f9;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .file-status {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+        
+        .file-status.success {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        .file-list {
+            margin-top: 10px;
+            font-size: 12px;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        
+        .file-item {
+            background: white;
+            padding: 8px 10px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-item-count {
+            background: #667eea;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+        
+        .file-item-remove {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .btn-add-csv {
+            flex: 1;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .btn-clear {
+            flex: 1;
+            padding: 10px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .search-section {
+            padding: 15px;
+            background: white;
+            flex-shrink: 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .search-section label {
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: inherit;
+            -webkit-appearance: none;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        input[type="text"]:disabled {
+            background: #f5f5f5;
+            color: #999;
+        }
+        
+        .results-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .result-item {
+            background: #f9f9f9;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+        
+        .result-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .result-info {
+            text-align: center;
+        }
+        
+        .result-kanji {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .result-source {
+            font-size: 11px;
+            color: #999;
+            margin-top: 8px;
+        }
+        
+        .no-results {
+            color: #999;
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+        
+        .empty-state {
+            color: #999;
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 14px;
+        }
+        
+        .stats {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            padding: 10px;
+            border-top: 1px solid #eee;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- パスワード画面 -->
+    <div class="password-screen" id="passwordScreen">
+        <div class="password-box">
+            <h1>🔐 アクセス認証</h1>
+            <p>アプリを使用するにはパスワードを入力してください</p>
+            <div class="password-input-group">
+                <input type="password" id="passwordInput" placeholder="パスワード" autofocus>
+            </div>
+            <button class="password-button" onclick="checkPassword()">アクセス</button>
+            <div class="password-error" id="passwordError">✗ パスワードが異なります</div>
+        </div>
+    </div>
+    
+    <!-- メイン画面 -->
+    <div class="main-screen hidden" id="mainScreen">
+        <div class="container">
+            <div class="header">
+                <h1>🔍 漢字検索</h1>
+                <p>漢字または読み仮名で番号を検索</p>
+            </div>
+            
+            <div class="content">
+                <div class="file-section">
+                    <div class="file-input-wrapper">
+                        <label class="file-input-label" for="csvFile">
+                            📁 CSVファイルを選択
+                        </label>
+                        <input type="file" id="csvFile" accept=".csv" onchange="handleFileUpload(event)">
+                    </div>
+                    <div class="file-status" id="fileStatus"></div>
+                    
+                    <div class="file-list" id="fileList"></div>
+                    
+                    <div class="button-row">
+                        <button class="btn-add-csv" onclick="document.getElementById('csvFile').click()">+ 追加</button>
+                        <button class="btn-clear" onclick="clearAllFiles()">全削除</button>
+                    </div>
+                </div>
+                
+                <div class="search-section">
+                    <label for="searchInput">検索</label>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="漢字または読み仮名"
+                        oninput="performSearch()"
+                        disabled
+                    >
+                </div>
+                
+                <div class="results-section" id="resultsSection">
+                    <div class="empty-state">ファイルを選択してください</div>
+                </div>
+                
+                <div class="stats" id="stats"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // パスワード設定（ここで変更可能）
+        const CORRECT_PASSWORD = "kanji2024";
+        
+        function checkPassword() {
+            const input = document.getElementById('passwordInput').value;
+            const errorMsg = document.getElementById('passwordError');
+            
+            if (input === CORRECT_PASSWORD) {
+                // パスワード正誤
+                document.getElementById('passwordScreen').classList.add('hidden');
+                document.getElementById('mainScreen').classList.remove('hidden');
+                errorMsg.classList.remove('show');
+            } else {
+                // パスワード誤
+                errorMsg.classList.add('show');
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        }
+        
+        // Enterキーでログイン
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
+        });
+        
+        // 以降のコードは既存の検索機能
+        let allData = [];
+        let fileMetadata = [];
+        
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csv = e.target.result;
+                    const count = parseCSV(csv, file.name);
+                    
+                    if (count > 0) {
+                        updateUI();
+                        document.getElementById('csvFile').value = '';
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert(`ファイルの読み込みに失敗しました: ${file.name}`);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function parseCSV(csv, fileName) {
+            const lines = csv.trim().split('\n');
+            let itemCount = 0;
+            
+            lines.forEach((line, index) => {
+                if (index === 0) return;
+                
+                const parts = line.split(',');
+                
+                if (parts.length === 2) {
+                    const kanji = parts[0].trim();
+                    const number = parts[1].trim();
+                    
+                    if (kanji && number) {
+                        allData.push({
+                            kanji: kanji,
+                            yomi: '',
+                            number: number,
+                            source: fileName
+                        });
+                        itemCount++;
+                    }
+                } else if (parts.length >= 3) {
+                    const kanji = parts[0].trim();
+                    const yomi = parts[1].trim();
+                    const number = parts[2].trim();
+                    
+                    if (kanji && number) {
+                        allData.push({
+                            kanji: kanji,
+                            yomi: yomi,
+                            number: number,
+                            source: fileName
+                        });
+                        itemCount++;
+                    }
+                }
+            });
+            
+            if (itemCount > 0) {
+                fileMetadata.push({
+                    name: fileName,
+                    count: itemCount
+                });
+            }
+            
+            return itemCount;
+        }
+        
+        function updateUI() {
+            const fileStatus = document.getElementById('fileStatus');
+            const fileList = document.getElementById('fileList');
+            
+            if (allData.length === 0) {
+                fileStatus.textContent = '✗ データが見つかりません';
+                return;
+            }
+            
+            fileStatus.innerHTML = `✓ ${allData.length}件のデータを読み込みました`;
+            fileStatus.classList.add('success');
+            
+            fileList.innerHTML = fileMetadata.map((file, index) => `
+                <div class="file-item">
+                    <div>${file.name}</div>
+                    <div class="file-item-count">${file.count}</div>
+                    <button class="file-item-remove" onclick="removeFile(${index})">削除</button>
+                </div>
+            `).join('');
+            
+            document.getElementById('searchInput').disabled = false;
+            document.getElementById('searchInput').focus();
+            updateStats();
+        }
+        
+        function removeFile(index) {
+            const fileName = fileMetadata[index].name;
+            allData = allData.filter(item => item.source !== fileName);
+            fileMetadata.splice(index, 1);
+            updateUI();
+        }
+        
+        function clearAllFiles() {
+            if (confirm('すべてのファイルを削除しますか？')) {
+                allData = [];
+                fileMetadata = [];
+                document.getElementById('fileStatus').innerHTML = '';
+                document.getElementById('fileStatus').classList.remove('success');
+                document.getElementById('fileList').innerHTML = '';
+                document.getElementById('searchInput').disabled = true;
+                document.getElementById('searchInput').value = '';
+                document.getElementById('resultsSection').innerHTML = '<div class="empty-state">ファイルを選択してください</div>';
+                document.getElementById('stats').innerHTML = '';
+            }
+        }
+        
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            const resultsSection = document.getElementById('resultsSection');
+            
+            if (!query) {
+                resultsSection.innerHTML = '<div class="empty-state">検索キーワードを入力してください</div>';
+                return;
+            }
+            
+            const results = allData.filter(item => 
+                item.kanji.includes(query) || item.yomi.includes(query)
+            );
+            
+            if (results.length === 0) {
+                resultsSection.innerHTML = '<div class="no-results">見つかりませんでした</div>';
+                return;
+            }
+            
+            resultsSection.innerHTML = results
+                .slice(0, 20)
+                .map(item => `
+                    <div class="result-item">
+                        <div class="result-number">${item.number}</div>
+                        <div class="result-info">
+                            <div class="result-kanji">${item.kanji}</div>
+                            <div class="result-source">${item.source}</div>
+                        </div>
+                    </div>
+                `).join('');
+        }
+        
+        function updateStats() {
+            const stats = document.getElementById('stats');
+            if (allData.length > 0) {
+                stats.innerHTML = `${allData.length}件`;
+            }
+        }
+    </script>
+</body>
+</html>
