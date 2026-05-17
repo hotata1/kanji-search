@@ -1,0 +1,194 @@
+name: 漢字検索ツール - サイト監視
+
+on:
+  schedule:
+    # 毎週月曜日 07:00 UTC (日本時間：月曜16:00)
+    - cron: '0 7 * * 1'
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    name: サイト監視
+
+    steps:
+      - name: 🔍 サイトアクセステスト
+        id: health_check
+        run: |
+          URL="https://hotata1.github.io/kanji-search/"
+
+          # HTTPヘッダー取得
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL" --connect-timeout 10 --max-time 30)
+
+          echo "URL: $URL"
+          echo "HTTP Status Code: $HTTP_CODE"
+          echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "❌ エラー: サイトが応答していません (Status: $HTTP_CODE)"
+            exit 1
+          fi
+
+          echo "✅ HTTP 200 OK"
+
+      - name: 📄 ページコンテンツ検証
+        id: content_check
+        run: |
+          URL="https://hotata1.github.io/kanji-search/"
+
+          # ページ内容を取得して確認
+          CONTENT=$(curl -s "$URL" --connect-timeout 10 --max-time 30)
+
+          # 主要要素の確認
+          echo "::group::検証項目"
+
+          # title要素の確認
+          if echo "$CONTENT" | grep -q "<title>"; then
+            echo "✅ タイトルタグ: 見つかりました"
+            echo "title_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ タイトルタグ: 見つかりません"
+            echo "title_found=false" >> $GITHUB_OUTPUT
+          fi
+
+          # 検索フォームの確認
+          if echo "$CONTENT" | grep -q "search\|検索" && echo "$CONTENT" | grep -q "input"; then
+            echo "✅ 検索フォーム: 見つかりました"
+            echo "search_form_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ 検索フォーム: 見つかりません"
+            echo "search_form_found=false" >> $GITHUB_OUTPUT
+          fi
+
+          # JavaScriptファイルの確認
+          if echo "$CONTENT" | grep -q "\.js\|<script"; then
+            echo "✅ スクリプトタグ: 見つかりました"
+            echo "js_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ スクリプトタグ: 見つかりません"
+            echo "js_found=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "::endgroup::"
+
+          # コンテンツが最小限あるか確認（空白でないか）
+          CONTENT_LENGTH=${#CONTENT}
+          echo "ページサイズ: $CONTENT_LENGTH bytes"
+
+          if [ $CONTENT_LENGTH -lt 1000 ]; then
+            echo "⚠️ 警告: ページサイズが予想より小さいです"
+            exit 1
+          fi
+
+      - name: 📊 結果レポート生成
+        if: always()
+        run: |
+          echo "## 🔍 サイト監視レポート" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**実行日時**: $(date '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### サイト情報" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: https://hotata1.github.io/kanji-search/" >> $GITHUB_STEP_SUMMARY
+          echo "- **HTTPステータス**: ${{ steps.health_check.outputs.http_code }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 検証結果" >> $GITHUB_STEP_SUMMARY
+          echo "- タイトルタグ: ${{ steps.content_check.outputs.title_found }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 検索フォーム: ${{ steps.content_check.outputs.search_form_found }}" >> $GITHUB_STEP_SUMMARY
+          echo "- スクリプトタグ: ${{ steps.content_check.outputs.js_found }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: ⚠️ Issue作成（失敗時）
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const now = new Date();
+            const jstTime = new Date(now.getTime() + 9*60*60*1000).toLocaleString('ja-JP');
+
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '⚠️ 【アラート】漢字検索ツール - サイト異常検知',
+              body: `## サイト監視アラート
+
+**検出日時**: ${jstTime} (JST)
+
+### 問題内容
+- サイトへのアクセスに失敗しました
+- HTTP ステータスコードが200でない、またはコンテンツに問題があります
+
+### 対象サイト
+- URL: https://hotata1.github.io/kanji-search/
+- リポジトリ: ${context.repo.owner}/${context.repo.repo}
+
+### 確認事項
+- [ ] GitHub Pages の デプロイ状態を確認
+- [ ] リポジトリの Settings → Pages を確認
+- [ ] 最新のコミットが正しくデプロイされているか確認
+- [ ] ブラウザで手動アクセスして動作確認
+
+### ワークフロー実行
+- [実行ログを表示](${context.payload.repository.html_url}/actions/runs/${context.runId})
+
+*このIssueは GitHub Actions の自動監視で作成されました*
+`,
+              labels: ['🚨 bug', '🔍 monitoring']
+            });
+
+      - name: 📧 メール通知（失敗時）
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: '⚠️ 【重要】漢字検索ツール - サイト異常検知'
+          to: onoshota39@gmail.com
+          from: 'GitHub Actions <${{ secrets.MAIL_FROM }}>'
+          body: |
+            漢字検索ツールのサイト監視でエラーが検出されました。
+
+            【検出内容】
+            実行時刻: ${{ job.status }} at $(date '+%Y-%m-%d %H:%M:%S UTC')
+            対象URL: https://hotata1.github.io/kanji-search/
+            HTTPステータス: ${{ steps.health_check.outputs.http_code }}
+
+            【対応が必要です】
+            1. GitHub Pages のデプロイ状態を確認してください
+            2. リポジトリの Settings → Pages を確認してください
+            3. 手動でサイトをブラウザで開いて動作確認してください
+
+            【詳細】
+            ワークフロー実行ログ: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            自動作成Issue: https://github.com/${{ github.repository }}/issues
+
+            ---
+            このメールは GitHub Actions の自動監視システムから送信されています。
+          html_body: |
+            <h2>⚠️ 漢字検索ツール - サイト異常検知</h2>
+            <p>サイト監視でエラーが検出されました。</p>
+
+            <h3>検出内容</h3>
+            <ul>
+              <li><strong>対象URL</strong>: https://hotata1.github.io/kanji-search/</li>
+              <li><strong>HTTPステータス</strong>: ${{ steps.health_check.outputs.http_code }}</li>
+              <li><strong>実行時刻</strong>: $(date '+%Y-%m-%d %H:%M:%S UTC')</li>
+            </ul>
+
+            <h3>対応が必要です</h3>
+            <ol>
+              <li>GitHub Pages のデプロイ状態を確認</li>
+              <li>リポジトリ Settings → Pages を確認</li>
+              <li>ブラウザでサイトを手動確認</li>
+            </ol>
+
+            <p>
+              <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">ワークフロー実行ログを表示</a>
+            </p>
+
+      - name: ✅ 成功通知（オプション）
+        if: success()
+        run: |
+          echo "✅ サイト監視が正常に完了しました"
+          echo "次回実行: 毎週月曜日 07:00 UTC"
