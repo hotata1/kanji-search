@@ -135,59 +135,7 @@ jobs:
               labels: ['🚨 bug', '🔍 monitoring']
             });
 
-      - name: 📧 メール通知（失敗時）
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.MAIL_SERVER }}
-          server_port: ${{ secrets.MAIL_PORT }}
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: '⚠️ 【重要】漢字検索ツール - サイト異常検知'
-          to: onoshota39@gmail.com
-          from: 'GitHub Actions <${{ secrets.MAIL_FROM }}>'
-          body: |
-            漢字検索ツールのサイト監視でエラーが検出されました。
-
-            【検出内容】
-            実行時刻: ${{ job.status }} at $(date '+%Y-%m-%d %H:%M:%S UTC')
-            対象URL: https://hotata1.github.io/kanji-search/
-            HTTPステータス: ${{ steps.health_check.outputs.http_code }}
-
-            【対応が必要です】
-            1. GitHub Pages のデプロイ状態を確認してください
-            2. リポジトリの Settings → Pages を確認してください
-            3. 手動でサイトをブラウザで開いて動作確認してください
-
-            【詳細】
-            ワークフロー実行ログ: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            自動作成Issue: https://github.com/${{ github.repository }}/issues
-
-            ---
-            このメールは GitHub Actions の自動監視システムから送信されています。
-          html_body: |
-            <h2>⚠️ 漢字検索ツール - サイト異常検知</h2>
-            <p>サイト監視でエラーが検出されました。</p>
-
-            <h3>検出内容</h3>
-            <ul>
-              <li><strong>対象URL</strong>: https://hotata1.github.io/kanji-search/</li>
-              <li><strong>HTTPステータス</strong>: ${{ steps.health_check.outputs.http_code }}</li>
-              <li><strong>実行時刻</strong>: $(date '+%Y-%m-%d %H:%M:%S UTC')</li>
-            </ul>
-
-            <h3>対応が必要です</h3>
-            <ol>
-              <li>GitHub Pages のデプロイ状態を確認</li>
-              <li>リポジトリ Settings → Pages を確認</li>
-              <li>ブラウザでサイトを手動確認</li>
-            </ol>
-
-            <p>
-              <a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">ワークフロー実行ログを表示</a>
-            </p>
-
-      - name: ✅ 成功通知（オプション）
+      - name: ✅ 成功通知
         if: success()
         run: |
           echo "✅ サイト監視が正常に完了しました"
