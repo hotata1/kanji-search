@@ -27,7 +27,7 @@ jobs:
         env:
           PASSWORD_HASH: ${{ secrets.PASSWORD_HASH }}
         run: |
-          node build.js
+          node scripts/build.js
 
       - name: Verify build
         run: |
