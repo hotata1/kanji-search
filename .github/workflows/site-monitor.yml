@@ -104,34 +104,31 @@ jobs:
           script: |
             const now = new Date();
             const jstTime = new Date(now.getTime() + 9*60*60*1000).toLocaleString('ja-JP');
+            const repoUrl = context.payload.repository.html_url;
+            const runId = context.runId;
+
+            const body = "## サイト監視アラート\n\n" +
+              "**検出日時**: " + jstTime + " (JST)\n\n" +
+              "### 問題内容\n" +
+              "- サイトへのアクセスに失敗しました\n" +
+              "- HTTP ステータスコードが200でない、またはコンテンツに問題があります\n\n" +
+              "### 対象サイト\n" +
+              "- URL: https://hotata1.github.io/kanji-search/\n" +
+              "- リポジトリ: " + context.repo.owner + "/" + context.repo.repo + "\n\n" +
+              "### 確認事項\n" +
+              "- [ ] GitHub Pages の デプロイ状態を確認\n" +
+              "- [ ] リポジトリの Settings → Pages を確認\n" +
+              "- [ ] 最新のコミットが正しくデプロイされているか確認\n" +
+              "- [ ] ブラウザで手動アクセスして動作確認\n\n" +
+              "### ワークフロー実行\n" +
+              "- [実行ログを表示](" + repoUrl + "/actions/runs/" + runId + ")\n\n" +
+              "*このIssueは GitHub Actions の自動監視で作成されました*";
 
             github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: '⚠️ 【アラート】漢字検索ツール - サイト異常検知',
-              body: `## サイト監視アラート
-
-**検出日時**: ${jstTime} (JST)
-
-### 問題内容
-- サイトへのアクセスに失敗しました
-- HTTP ステータスコードが200でない、またはコンテンツに問題があります
-
-### 対象サイト
-- URL: https://hotata1.github.io/kanji-search/
-- リポジトリ: ${context.repo.owner}/${context.repo.repo}
-
-### 確認事項
-- [ ] GitHub Pages の デプロイ状態を確認
-- [ ] リポジトリの Settings → Pages を確認
-- [ ] 最新のコミットが正しくデプロイされているか確認
-- [ ] ブラウザで手動アクセスして動作確認
-
-### ワークフロー実行
-- [実行ログを表示](${context.payload.repository.html_url}/actions/runs/${context.runId})
-
-*このIssueは GitHub Actions の自動監視で作成されました*
-`,
+              body: body,
               labels: ['🚨 bug', '🔍 monitoring']
             });
 
