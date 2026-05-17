@@ -1,0 +1,8 @@
+feat: JSON設定ファイル方式で環境変数管理を実装
+
+- config.json でパスワードハッシュを管理
+- config.example.json でテンプレート提供
+- index.html を修正して config.json を fetch で読み込み
+- .gitignore を追加して config.json をリポジトリから除外
+- SETUP.md でセットアップガイドを提供
+- セキュリティ改善：パスワードハッシュのハードコード化を解消

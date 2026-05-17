@@ -49,6 +49,30 @@
             opacity: 0.9;
             font-size: 12px;
         }
+
+        .header-buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .header-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+        }
         
         .tabs {
             display: flex;
@@ -284,6 +308,10 @@
         <div class="header">
             <h1>📋 データ入力</h1>
             <p>漢字データを入力してCSVを生成</p>
+            <div class="header-buttons">
+                <a href="index.html" class="header-btn">🔍 漢字検索に戻る</a>
+                <button class="header-btn" onclick="logout()" style="background: rgba(255, 255, 255, 0.2); cursor: pointer;">🚪 ログアウト</button>
+            </div>
         </div>
         
         <div class="tabs">
@@ -365,8 +393,16 @@
     </div>
     
     <script>
+        /**
+         * ログアウト処理
+         */
+        function logout() {
+            sessionStorage.removeItem('kanji_search_authenticated');
+            window.location.href = 'index.html';
+        }
+
         let data = [];
-        
+
         function switchTab(index) {
             document.querySelectorAll('.tab-btn').forEach((btn, i) => {
                 btn.classList.toggle('active', i === index);

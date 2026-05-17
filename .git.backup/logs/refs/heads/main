@@ -1,0 +1,8 @@
+0000000000000000000000000000000000000000 a48a65826dd7d4c17efa36b7b59d14d7dfc7071a Hotata <onoshota39@gmail.com> 1778690297 +0900	commit (initial): Add kanji search files
+a48a65826dd7d4c17efa36b7b59d14d7dfc7071a b1b114f717cace54c2ce1508307f28ec257a0448 Hotata <onoshota39@gmail.com> 1778691156 +0900	commit: Update with secure password hashing
+b1b114f717cace54c2ce1508307f28ec257a0448 7b9193ad330875153451535edb02e33ebfbdada3 Hotata <onoshota39@gmail.com> 1778691718 +0900	commit: Fix password hash
+7b9193ad330875153451535edb02e33ebfbdada3 f1459b845f3103d2b3e419ba4f15b8e5223e2ee6 Hotata <onoshota39@gmail.com> 1778692753 +0900	commit: Add link to data input tool
+f1459b845f3103d2b3e419ba4f15b8e5223e2ee6 a7a0a2295e7badf57cf2745cda330bae58596f99 Hotata <onoshota39@gmail.com> 1779017627 +0900	commit: refactor: HTMLとCSSとJSを分離し、クラスベース設計に変更
+a7a0a2295e7badf57cf2745cda330bae58596f99 9c9d6cf14763f41872c8171561e213a686011a72 Hotata <onoshota39@gmail.com> 1779018093 +0900	commit: style: 全デバイスで検索結果を上部に表示するレイアウト改善
+9c9d6cf14763f41872c8171561e213a686011a72 8bd1c0cb2439253aeb1606133a3543c001ad171a Hotata <onoshota39@gmail.com> 1779018352 +0900	commit: fix: CSS重複定義を整理し、全デバイスで検索結果を上部に表示
+8bd1c0cb2439253aeb1606133a3543c001ad171a 7e68183ea2769fcd90f696795f638d2bfa6b76d7 Shota Ono <onoshota39@gmail.com> 1779019034 +0000	commit: feat: JSON設定ファイル方式で環境変数管理を実装

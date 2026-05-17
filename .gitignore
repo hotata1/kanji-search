@@ -1,0 +1,20 @@
+# 環境変数・設定ファイル
+config.json
+.env
+.env.local
+
+# IDE・エディタ
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ノード・パッケージ管理
+node_modules/
+package-lock.json
+yarn.lock
