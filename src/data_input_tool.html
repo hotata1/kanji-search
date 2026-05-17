@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>データ入力</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', sans-serif;
+            background: white;
+            padding: env(safe-area-inset-bottom) 0 0 0;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 100%;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 12px;
+        }
+
+        .header-buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .header-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 15px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            margin-top: 15px;
+        }
+        
+        .section-title:first-child {
+            margin-top: 0;
+        }
+        
+        .input-group {
+            margin-bottom: 12px;
+        }
+        
+        .input-label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+        
+        .format-hint {
+            background: #f0f4ff;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .button-group.full {
+            grid-template-columns: 1fr;
+        }
+        
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:active {
+            background: #5568d3;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:active {
+            background: #229954;
+        }
+        
+        .btn-danger {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-danger:active {
+            background: #7f8c8d;
+        }
+        
+        .table-container {
+            margin-top: 15px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        
+        table thead {
+            background: #667eea;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        
+        table th {
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        table tbody tr:active {
+            background: #f5f5f5;
+        }
+        
+        .btn-delete-small {
+            background: #e74c3c;
+            color: white;
+            padding: 6px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+        }
+        
+        .btn-delete-small:active {
+            background: #c0392b;
+        }
+        
+        .message {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .stats {
+            background: #f0f4ff;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .stats-value {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 データ入力</h1>
+            <p>漢字データを入力してCSVを生成</p>
+            <div class="header-buttons">
+                <a href="index.html" class="header-btn">🔍 漢字検索に戻る</a>
+                <button class="header-btn" onclick="logout()" style="background: rgba(255, 255, 255, 0.2); cursor: pointer;">🚪 ログアウト</button>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(0)">手動入力</button>
+            <button class="tab-btn" onclick="switchTab(1)">一括ペースト</button>
+        </div>
+        
+        <div class="content">
+            <!-- 手動入力 -->
+            <div class="tab-content active">
+                <div class="section-title">1件ずつ入力</div>
+                <div class="input-group">
+                    <label class="input-label">漢字</label>
+                    <input type="text" id="newKanji" placeholder="例：鮭" maxlength="10">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">読み仮名（省略可）</label>
+                    <input type="text" id="newYomi" placeholder="例：しゃけ" maxlength="20">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">番号</label>
+                    <input type="text" id="newNumber" placeholder="例：1312" maxlength="10">
+                </div>
+                <div class="button-group full">
+                    <button class="btn-primary" onclick="addRow()">追加</button>
+                </div>
+            </div>
+            
+            <!-- 一括ペースト -->
+            <div class="tab-content">
+                <div class="section-title">形式選択</div>
+                <div class="format-hint">
+                    📝 以下の形式でペーストしてください：<br/>
+                    <code style="display: block; margin-top: 6px; padding: 6px; background: white; border-radius: 4px; border: 1px solid #ddd; font-size: 10px;">
+鮭,しゃけ,1312<br/>
+実,み,310<br/>
+根,ね,610
+                    </code>
+                    <br/>または（読み仮名なし）<br/>
+                    <code style="display: block; margin-top: 6px; padding: 6px; background: white; border-radius: 4px; border: 1px solid #ddd; font-size: 10px;">
+凍,129<br/>
+船,989
+                    </code>
+                </div>
+                <textarea id="pasteArea" placeholder="漢字,読み仮名,番号&#10;..."></textarea>
+                <div class="button-group full">
+                    <button class="btn-success" onclick="importFromPaste()">インポート</button>
+                </div>
+                <div id="pasteMessage"></div>
+            </div>
+            
+            <!-- 共通セクション -->
+            <div class="section-title" style="margin-top: 20px;">データ一覧（<span id="dataCount">0</span>件）</div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">漢字</th>
+                            <th style="width: 40%;">読み仮名</th>
+                            <th style="width: 20%;">番号</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-danger" onclick="clearAll()">全削除</button>
+                <button class="btn-success" onclick="downloadCSV()">CSV出力</button>
+            </div>
+            
+            <div class="stats">
+                <div>入力済みデータ</div>
+                <div class="stats-value" id="statsValue">0</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        /**
+         * ログアウト処理
+         */
+        function logout() {
+            sessionStorage.removeItem('kanji_search_authenticated');
+            window.location.href = 'index.html';
+        }
+
+        let data = [];
+
+        function switchTab(index) {
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            document.querySelectorAll('.tab-content').forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+        }
+        
+        function addRow() {
+            const kanji = document.getElementById('newKanji').value.trim();
+            const yomi = document.getElementById('newYomi').value.trim();
+            const number = document.getElementById('newNumber').value.trim();
+            
+            if (!kanji || !number) {
+                alert('漢字と番号は必須です');
+                return;
+            }
+            
+            data.push({ kanji, yomi, number });
+            data.sort((a, b) => parseInt(a.number) - parseInt(b.number));
+            
+            document.getElementById('newKanji').value = '';
+            document.getElementById('newYomi').value = '';
+            document.getElementById('newNumber').value = '';
+            document.getElementById('newKanji').focus();
+            
+            renderTable();
+            updateStats();
+        }
+        
+        function importFromPaste() {
+            const text = document.getElementById('pasteArea').value.trim();
+            const msg = document.getElementById('pasteMessage');
+            
+            if (!text) {
+                msg.innerHTML = '<div class="message error">テキストを入力してください</div>';
+                return;
+            }
+            
+            let imported = 0, skipped = 0;
+            
+            text.split('\n').forEach(line => {
+                const parts = line.split(',').map(p => p.trim());
+                if (parts.length >= 2) {
+                    const kanji = parts[0];
+                    const yomi = parts.length >= 3 ? parts[1] : '';
+                    const number = parts.length >= 3 ? parts[2] : parts[1];
+                    
+                    if (kanji && number && !isNaN(number)) {
+                        if (!data.some(d => d.kanji === kanji && d.number === number)) {
+                            data.push({ kanji, yomi, number });
+                            imported++;
+                        } else {
+                            skipped++;
+                        }
+                    }
+                }
+            });
+            
+            if (imported > 0) {
+                data.sort((a, b) => parseInt(a.number) - parseInt(b.number));
+                renderTable();
+                updateStats();
+                msg.innerHTML = `<div class="message success">✓ ${imported}件をインポート${skipped > 0 ? `（重複${skipped}件スキップ）` : ''}</div>`;
+                document.getElementById('pasteArea').value = '';
+            } else {
+                msg.innerHTML = '<div class="message error">✗ インポート可能なデータがありません</div>';
+            }
+        }
+        
+        function deleteRow(index) {
+            data.splice(index, 1);
+            renderTable();
+            updateStats();
+        }
+        
+        function renderTable() {
+            const tbody = document.getElementById('dataTable');
+            tbody.innerHTML = data.map((item, i) => `
+                <tr>
+                    <td>${item.kanji}</td>
+                    <td>${item.yomi || '-'}</td>
+                    <td>${item.number}</td>
+                </tr>
+            `).join('');
+        }
+        
+        function updateStats() {
+            document.getElementById('dataCount').textContent = data.length;
+            document.getElementById('statsValue').textContent = data.length;
+        }
+        
+        function clearAll() {
+            if (confirm('すべて削除しますか？')) {
+                data = [];
+                renderTable();
+                updateStats();
+            }
+        }
+        
+        function downloadCSV() {
+            if (data.length === 0) {
+                alert('データがありません');
+                return;
+            }
+            
+            let csv = '漢字,読み仮名,番号\n';
+            csv += data.map(item => `${item.kanji},${item.yomi},${item.number}`).join('\n');
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'kanji_data.csv';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Enterキー対応
+        document.getElementById('newNumber')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addRow();
+        });
+    </script>
+</body>
+</html>

@@ -31,7 +31,7 @@ jobs:
 
       - name: Verify build
         run: |
-          if grep -q "___PASSWORD_HASH_PLACEHOLDER___" index.html; then
+          if grep -q "___PASSWORD_HASH_PLACEHOLDER___" public/index.html; then
             echo "❌ Error: Placeholder not replaced"
             exit 1
           fi
@@ -40,7 +40,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: 'public'
 
   deploy:
     environment:

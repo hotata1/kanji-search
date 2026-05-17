@@ -19,7 +19,7 @@ console.log('🔨 ビルド開始...');
 console.log(`📝 PASSWORD_HASH: ${passwordHash.substring(0, 10)}...`);
 
 // index.html を読み込む
-const indexPath = path.join(__dirname, 'index.html');
+const indexPath = path.join(__dirname, '..', 'public', 'index.html');
 let html = fs.readFileSync(indexPath, 'utf-8');
 
 // プレースホルダーを環境変数に置き換え
